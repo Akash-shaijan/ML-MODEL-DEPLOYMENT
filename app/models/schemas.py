@@ -11,3 +11,15 @@ class PredictionInput(BaseModel):
     petal_width: float = Field(..., gt=0, le=10, description="Petal width in cm, must be positive and no more than 10") # custum constrain le
     
     
+
+
+class PredictionOutput(BaseModel):
+    
+    prediction : str
+    
+    confidence : float
+    
+    model_version : str
+    
+    request_id : str
+    
