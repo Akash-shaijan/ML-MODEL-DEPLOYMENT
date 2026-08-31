@@ -6,7 +6,7 @@ def setup_logger():
     
     os.makedirs("app/logs", exist_ok=True)
 
-    logger = logging.getLogger("ml_api")
+    logger = logging.getLogger("ml_api")  
     
     logger.setLevel(logging.INFO) 
 

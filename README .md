@@ -42,3 +42,25 @@ associated confidence score.
 
 Python 3.11+, FastAPI, Pydantic, Uvicorn, scikit-learn, pytest, Docker, Prometheus
 
+
+
+# Versioning Plan — How v2 Would Differ From v1
+
+The current API is versioned under '/api/v1/...' using a dedicated `APIRouter',
+keeping v1's routes and schemas completely isolated from any future changes.
+
+If a '/api/v2/predict' endpoint were needed tomorrow — for example, to return
+an extra field like a full per-class probability breakdown instead of just a
+single confidence score — it would be built as follows:
+
+- A new 'PredictionOutputV2' schema would be added to 'schemas.py', containing
+  the extra field, without touching the existing 'PredictionOutput' schema.
+- A new router file, 'app/routers/v2.py', would be created with its own
+  'APIRouter(prefix="/api/v2")', containing the new '/predict' logic.
+- The existing v1 router and schema would never be modified directly.
+
+This matters because any client still calling '/api/v1/predict' is relying on 
+its exact current response shape. Changing that shape — even by just adding a
+field — could silently break their integration. Versioning exists specifically
+so breaking changes go into a new version, while old clients keep working
+against the version they were built for, untouched. 
