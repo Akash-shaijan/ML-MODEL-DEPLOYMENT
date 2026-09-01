@@ -4,16 +4,22 @@ from fastapi.responses import JSONResponse
 import joblib
 import uuid
 import time
-from app.models.state import ml_models
+from app.models.state import ml_models,model_metadata
 from app.logging_config import logger
 from app.routers.v1 import router as v1_router
+import json
+
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     
     ml_models["pipeline"] = joblib.load("ml/saved_model/model.joblib")
-    
+
+    with open("ml/saved_model/model_metadata.json") as f:
+        
+        model_metadata.update(json.load(f))
+
     logger.info("Model loaded successfully")
     
     yield
@@ -65,3 +71,4 @@ async def value_error_handler(request: Request, exception: ValueError):
 def root():
     
     return {"message": "ML API is alive"}
+
