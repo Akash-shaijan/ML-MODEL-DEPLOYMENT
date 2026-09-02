@@ -1,7 +1,7 @@
 {
   "model_type": "RandomForestClassifier",
   "version": "v1",
-  "trained_on": "2026-09-01T10:22:57.516736",
+  "trained_on": "2026-09-01T15:31:24.924062",
   "features": [
     "sepal_length",
     "sepal_width",

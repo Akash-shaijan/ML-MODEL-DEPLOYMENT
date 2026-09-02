@@ -1,0 +1,5 @@
+API_TITLE=ML Model Deployment as a Monitored REST API
+MODEL_PATH=ml/saved_model/model.joblib
+MODEL_METADATA_PATH=ml/saved_model/model_metadata.json
+LOG_LEVEL=INFO
+MAX_BATCH_SIZE=100

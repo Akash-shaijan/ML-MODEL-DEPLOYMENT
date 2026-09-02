@@ -1,19 +1,11 @@
 from sklearn.datasets import load_iris
-
 from sklearn.model_selection import train_test_split
-
 from sklearn.pipeline import Pipeline
-
 from sklearn.preprocessing import StandardScaler
-
 from sklearn.ensemble import RandomForestClassifier
-
 from sklearn.metrics import accuracy_score
-
 import joblib
-
 import json
-
 from datetime import datetime
 
 
@@ -64,11 +56,11 @@ metadata = {
     "features": ["sepal_length", "sepal_width", "petal_length", "petal_width"],
     
     "test_accuracy": accuracy,
-}
+           }
 
 with open("ml/saved_model/model_metadata.json", "w") as f:
     
-    json.dump(metadata, f, indent=2)
+    json.dump(metadata, f, indent=2) 
 
 print("Metadata saved to ml/saved_model/model_metadata.json")
 

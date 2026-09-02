@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, Request
 from app.models.schemas import PredictionInput,PredictionOutput,PredictionBatchInput,PredictionBatchOutput,ModelInfo
 from app.models.state import ml_models, model_metadata
 from app.logging_config import logger
+from app.config import settings
 
 router = APIRouter(prefix="/api/v1")
 
@@ -58,16 +59,20 @@ def predict(data: PredictionInput, request: Request):
 @router.post("/predict-batch", response_model=PredictionBatchOutput)
 def predict_batch(data: PredictionBatchInput, request: Request):
     
-    request_id = request.state.request_id
+    request_id = request.state.request_id 
     
-    start_time = time.time()
+    if len(data.inputs) > settings.MAX_BATCH_SIZE:
+    
+        raise HTTPException(status_code=400,detail=f"Batch size cannot exceed {settings.MAX_BATCH_SIZE}")
+    
+    start_time = time.time() 
 
     # Build ONE 2D array from ALL rows — this is what makes it efficient
     features = [
         
         [item.sepal_length, item.sepal_width, item.petal_length, item.petal_width]
         
-        for item in data.inputs
+        for item in data.inputs 
     ]
 
     try:
@@ -86,7 +91,7 @@ def predict_batch(data: PredictionBatchInput, request: Request):
         
         raise HTTPException(status_code=500, detail="Batch prediction failed") from error
 
-    results = []
+    results = [] 
     
     for pred, probs in zip(predictions, probabilities):
         

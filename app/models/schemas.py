@@ -24,14 +24,14 @@ class PredictionOutput(BaseModel):
     
 class PredictionBatchInput(BaseModel):
     
-    inputs: list[PredictionInput] = Field(..., min_length=1, max_length=100)
+    inputs: list[PredictionInput] = Field(..., min_length=1)
 
 
 class PredictionBatchOutput(BaseModel):
     
     predictions: list[PredictionOutput]
     
-    count: int
+    count: int 
 
 
 class ModelInfo(BaseModel):
@@ -43,3 +43,7 @@ class ModelInfo(BaseModel):
     trained_on: str
     
     features: list[str]  
+    
+    test_accuracy: float
+    
+    

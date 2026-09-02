@@ -1,6 +1,7 @@
 import logging
 import os
 from logging.handlers import RotatingFileHandler
+from app.config import settings
 
 def setup_logger():
     
@@ -8,7 +9,7 @@ def setup_logger():
 
     logger = logging.getLogger("ml_api")  
     
-    logger.setLevel(logging.INFO) 
+    logger.setLevel(settings.LOG_LEVEL) 
 
     formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
 
