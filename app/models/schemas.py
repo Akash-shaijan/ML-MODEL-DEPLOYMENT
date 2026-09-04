@@ -47,3 +47,14 @@ class ModelInfo(BaseModel):
     test_accuracy: float
     
     
+    
+class PredictionOutputV2(BaseModel):
+    
+    prediction: str
+    
+    probabilities: dict[str, float]
+    
+    model_version: str
+    
+    request_id: str
+    
