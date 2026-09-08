@@ -7,4 +7,4 @@ def run_inference(features):
 
     probabilities = ml_models["pipeline"].predict_proba(features)
 
-    return predictions, probabilities
+    return predictions, probabilities  

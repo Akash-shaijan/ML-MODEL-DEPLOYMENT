@@ -4,6 +4,7 @@ from app.models.schemas import PredictionInput,PredictionOutput,PredictionBatchI
 from app.models.state import ml_models, model_metadata
 from app.logging_config import logger
 from app.config import settings
+from app.services.predictor import run_inference 
 
 router = APIRouter(prefix="/api/v1")
 
@@ -28,9 +29,7 @@ def predict(data: PredictionInput, request: Request):
     features = [[data.sepal_length, data.sepal_width, data.petal_length, data.petal_width]]
 
     try:
-        prediction = ml_models["pipeline"].predict(features)
-        
-        probabilities = ml_models["pipeline"].predict_proba(features)
+        prediction,probabilities = run_inference(features)
         
     except ValueError:
         
@@ -65,7 +64,7 @@ def predict_batch(data: PredictionBatchInput, request: Request):
     
         raise HTTPException(status_code=400,detail=f"Batch size cannot exceed {settings.MAX_BATCH_SIZE}")
     
-    start_time = time.time() 
+    start_time = time.time()  
 
     # Build ONE 2D array from ALL rows — this is what makes it efficient
     features = [
