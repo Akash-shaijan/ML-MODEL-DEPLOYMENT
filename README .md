@@ -63,4 +63,84 @@ This matters because any client still calling '/api/v1/predict' is relying on
 its exact current response shape. Changing that shape — even by just adding a
 field — could silently break their integration. Versioning exists specifically
 so breaking changes go into a new version, while old clients keep working
-against the version they were built for, untouched. 
+against the version they were built for, untouched.  
+
+
+
+# How to Run This Project with Docker Compose
+
+The application is containerized using Docker and can be started using Docker Compose.
+
+Docker Compose uses the `docker-compose.yml` file to build and run the FastAPI service, map the required port, load environment variables from the `.env` file, and mount the saved ML model directory.
+
+## Prerequisites
+
+Before running the project, make sure Docker Desktop is installed and running.
+
+## Start the Application
+
+From the project root directory, run:
+
+```bash
+docker compose up --build
+```
+
+This command:
+
+- Builds the Docker image using the project's `Dockerfile`
+- Creates and starts the API container
+- Maps host port `8000` to container port `8000`
+- Loads environment variables from the `.env` file
+- Mounts the `ml/saved_model` directory into the container
+
+After the application starts, the API is available at:
+
+`http://localhost:8000`
+
+Swagger API documentation is available at:
+
+`http://localhost:8000/docs`
+
+## Start Without Rebuilding
+
+If the Docker image has already been built and no rebuild is required, run:
+
+```bash
+docker compose up
+```
+
+## Stop the Application
+
+To stop and remove the containers and network created by Docker Compose, run:
+
+```bash
+docker compose down
+```
+
+## Restart the API Service
+
+To restart only the API service, run:
+
+```bash
+docker compose restart api
+```
+
+## Model Volume
+
+The `ml/saved_model` directory is mounted into the container using a bind mount:
+
+```yaml
+volumes:
+  - ./ml/saved_model:/app/ml/saved_model
+```
+
+This allows the saved ML model files on the host machine to be made available directly inside the container.
+If a retrained model replaces the existing model file, the Docker image does not need to be rebuilt just to copy the new model into the image. The API service can instead be restarted so that the application loads the updated model during startup.
+
+## Docker Compose Service
+
+The application currently contains one Compose service:
+
+- `api` — runs the FastAPI ML prediction API.
+
+The Compose setup can later be extended with additional services such as Prometheus for monitoring.
