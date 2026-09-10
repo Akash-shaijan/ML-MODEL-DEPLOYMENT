@@ -1,4 +1,4 @@
-def test_predict_valid_input_returns_200(client):
+def test_predict_valid_input_returns_200(client,auth_headers):
     
     payload = {
         
@@ -8,7 +8,7 @@ def test_predict_valid_input_returns_200(client):
         "petal_width": 0.2,
     }
 
-    response = client.post("/api/v1/predict", json=payload)
+    response = client.post("/api/v1/predict", json=payload,headers=auth_headers)
 
     assert response.status_code == 200
 
@@ -21,7 +21,7 @@ def test_predict_valid_input_returns_200(client):
     assert "request_id" in data
 
 
-def test_predict_missing_field_returns_422(client):
+def test_predict_missing_field_returns_422(client,auth_headers):
     
     payload = {
         
@@ -31,12 +31,12 @@ def test_predict_missing_field_returns_422(client):
         # petal_width missing on purpose
     }
 
-    response = client.post("/api/v1/predict", json=payload)
+    response = client.post("/api/v1/predict", json=payload,headers=auth_headers)
 
     assert response.status_code == 422
 
 
-def test_predict_wrong_type_returns_422(client):
+def test_predict_wrong_type_returns_422(client,auth_headers):
     
     payload = {
         
@@ -46,12 +46,12 @@ def test_predict_wrong_type_returns_422(client):
         "petal_width": 0.2,
     }
 
-    response = client.post("/api/v1/predict", json=payload)
+    response = client.post("/api/v1/predict", json=payload,headers=auth_headers)
 
     assert response.status_code == 422
 
 
-def test_predict_negative_value_returns_422(client):
+def test_predict_negative_value_returns_422(client,auth_headers):
     
     payload = {
         
@@ -61,6 +61,8 @@ def test_predict_negative_value_returns_422(client):
         "petal_width": 0.2,
     }
 
-    response = client.post("/api/v1/predict", json=payload)
+    response = client.post("/api/v1/predict", json=payload,headers=auth_headers)
 
     assert response.status_code == 422
+    
+    

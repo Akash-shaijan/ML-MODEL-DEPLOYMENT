@@ -1,4 +1,4 @@
-def test_v1_and_v2_return_different_shapes_for_same_input(client):
+def test_v1_and_v2_return_different_shapes_for_same_input(client,auth_headers):
     
     payload = {
         
@@ -9,9 +9,9 @@ def test_v1_and_v2_return_different_shapes_for_same_input(client):
         
     }
 
-    v1_response = client.post("/api/v1/predict", json=payload)
+    v1_response = client.post("/api/v1/predict", json=payload,headers=auth_headers)
     
-    v2_response = client.post("/api/v2/predict", json=payload)
+    v2_response = client.post("/api/v2/predict", json=payload,headers=auth_headers) 
 
     assert v1_response.status_code == 200
     

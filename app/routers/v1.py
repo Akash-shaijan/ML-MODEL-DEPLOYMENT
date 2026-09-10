@@ -1,10 +1,11 @@
 import time
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request,Depends 
 from app.models.schemas import PredictionInput,PredictionOutput,PredictionBatchInput,PredictionBatchOutput,ModelInfo
 from app.models.state import ml_models, model_metadata
 from app.logging_config import logger
 from app.config import settings
 from app.services.predictor import run_inference 
+from app.security import verify_api_key  
 
 router = APIRouter(prefix="/api/v1")
 
@@ -21,7 +22,7 @@ def health():
     return {"status": "ok", "model_loaded": model_loaded}
 
 
-@router.post("/predict", response_model=PredictionOutput)
+@router.post("/predict", response_model=PredictionOutput,dependencies=[Depends(verify_api_key)]) 
 def predict(data: PredictionInput, request: Request):
     
     request_id = request.state.request_id
@@ -55,7 +56,7 @@ def predict(data: PredictionInput, request: Request):
     }
 
 
-@router.post("/predict-batch", response_model=PredictionBatchOutput)
+@router.post("/predict-batch", response_model=PredictionBatchOutput,dependencies=[Depends(verify_api_key)])
 def predict_batch(data: PredictionBatchInput, request: Request):
     
     request_id = request.state.request_id 
@@ -118,7 +119,7 @@ def predict_batch(data: PredictionBatchInput, request: Request):
 
 
 
-@router.get("/model-info", response_model=ModelInfo)
+@router.get("/model-info", response_model=ModelInfo,dependencies=[Depends(verify_api_key)])
 def model_info():
     
     logger.info("model-info requested")

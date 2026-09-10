@@ -1,10 +1,13 @@
-from pydantic import BaseModel, Field 
+from pydantic import BaseModel, Field,ConfigDict
+
 
 class PredictionInput(BaseModel):
     
-    sepal_length: float = Field(..., gt=0, description="Sepal length in cm, must be positive")
+    model_config = ConfigDict(extra="forbid")
     
-    sepal_width: float = Field(..., gt=0, description="Sepal width in cm, must be positive")
+    sepal_length: float = Field(..., gt=0, le=10, description="Sepal length in cm, must be positive")
+    
+    sepal_width: float = Field(..., gt=0, le=10, description="Sepal width in cm, must be positive")
     
     petal_length: float = Field(..., gt=0, le=10, description="Petal length in cm, must be positive and no more than 10")
     
@@ -13,7 +16,7 @@ class PredictionInput(BaseModel):
 
 class PredictionOutput(BaseModel):
     
-    prediction : str
+    prediction : str 
     
     confidence : float
     
@@ -23,6 +26,8 @@ class PredictionOutput(BaseModel):
     
     
 class PredictionBatchInput(BaseModel):
+    
+    model_config = ConfigDict(extra="forbid")
     
     inputs: list[PredictionInput] = Field(..., min_length=1)
 

@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request,Depends
 from app.models.schemas import PredictionInput, PredictionOutputV2
 from app.services.predictor import run_inference
 from app.logging_config import logger
+from app.security import verify_api_key 
 
 router = APIRouter(prefix="/api/v2")
 
@@ -10,7 +11,7 @@ species_names = ["setosa", "versicolor", "virginica"]
 model_version = "v2"
 
 
-@router.post("/predict", response_model=PredictionOutputV2)
+@router.post("/predict", response_model=PredictionOutputV2,dependencies=[Depends(verify_api_key)])
 def predict_v2(data: PredictionInput, request: Request):
     request_id = request.state.request_id
 

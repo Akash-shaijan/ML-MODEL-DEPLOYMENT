@@ -1,6 +1,6 @@
-def test_model_info_returns_expected_keys(client):
+def test_model_info_returns_expected_keys(client,auth_headers):
     
-    response = client.get("/api/v1/model-info")
+    response = client.get("/api/v1/model-info",headers=auth_headers)
     
     assert response.status_code == 200
     
