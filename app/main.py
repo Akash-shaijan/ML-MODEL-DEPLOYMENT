@@ -11,6 +11,7 @@ import json
 from app.config import settings
 from app.routers.v2 import router as v2_router
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 
 
 @asynccontextmanager
@@ -35,6 +36,7 @@ app.include_router(v1_router)
 
 app.include_router(v2_router)
 
+Instrumentator().instrument(app).expose(app)
 
 
 app.add_middleware(

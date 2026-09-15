@@ -3,6 +3,7 @@ from app.models.schemas import PredictionInput, PredictionOutputV2
 from app.services.predictor import run_inference
 from app.logging_config import logger
 from app.security import verify_api_key 
+from app.metrics import prediction_counter
 
 router = APIRouter(prefix="/api/v2")
 
@@ -32,6 +33,8 @@ def predict_v2(data: PredictionInput, request: Request):
         raise HTTPException(status_code=500, detail="Prediction failed") from error
 
     species = species_names[predictions[0]] 
+    
+    prediction_counter.labels(predicted_class=species,model_version=model_version).inc()
     
     probability_dict = {
         

@@ -6,6 +6,7 @@ from app.logging_config import logger
 from app.config import settings
 from app.services.predictor import run_inference 
 from app.security import verify_api_key  
+from app.metrics import prediction_counter
 
 router = APIRouter(prefix="/api/v1")
 
@@ -45,6 +46,8 @@ def predict(data: PredictionInput, request: Request):
     confidence = float(max(probabilities[0]))
     
     species = species_names[prediction[0]]
+    
+    prediction_counter.labels(predicted_class=species, model_version=model_version).inc() 
 
     logger.info(f"request_id={request_id} prediction={species} confidence={confidence:.4f}")
 
