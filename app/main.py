@@ -28,6 +28,8 @@ async def lifespan(app: FastAPI):
     yield
     
     ml_models.clear()
+    
+    model_metadata.clear()
 
 
 app = FastAPI(title=settings.API_TITLE, lifespan=lifespan)

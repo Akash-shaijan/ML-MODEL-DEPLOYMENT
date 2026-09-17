@@ -2,11 +2,19 @@
 
 ## Integration Testing
 
-Ran `tests/integration/test_integration.py` against the live Docker container started using:
+`tests/integration/test_integration.py` was run against the live Docker container, started with:
 
-`docker compose up --build`
+```bash
+docker compose up --build
+```
 
-The tests made real HTTP requests using `httpx` to the following endpoints:
+The tests make real `httpx` requests against the running API at:
+
+```text
+http://localhost:8000
+```
+
+The integration tests cover:
 
 - `/api/v1/health`
 - `/api/v1/predict`
@@ -15,61 +23,139 @@ The tests made real HTTP requests using `httpx` to the following endpoints:
 
 Result:
 
-`4 passed`
+```text
+4 passed
+```
 
-This confirmed that the containerized API worked correctly end-to-end.
+This verified that the containerized API works correctly end-to-end, not just through isolated in-process tests.
+
+---
+
+## Full Test Suite
+
+The complete pytest suite was run with:
+
+```bash
+python -m pytest -v
+```
+
+Final result:
+
+```text
+18 passed
+```
+
+This confirmed that both the normal automated tests and the live integration tests passed successfully.
 
 ---
 
 ## Load Testing
 
-Created `scripts/load_test.py` to send concurrent requests to:
+A custom asynchronous load test was created at:
 
-`/api/v1/predict`
+```text
+scripts/load_test.py
+```
 
-### 100 Concurrent Requests - Run 1
+It sends concurrent requests to:
 
-Total requests       : 100  
-Successful requests  : 100  
-Failed requests      : 0  
-Total test time      : 3.9016 seconds  
-Average response time: 3.7642 seconds  
-Fastest response     : 3.3653 seconds  
-Slowest response     : 3.8410 seconds  
+```text
+/api/v1/predict
+```
 
-### Single Request Test
+The script must be run with:
 
-Total requests       : 1  
-Successful requests  : 1  
-Failed requests      : 0  
-Total test time      : 0.3577 seconds  
-Average response time: 0.3548 seconds  
-Fastest response     : 0.3548 seconds  
-Slowest response     : 0.3548 seconds  
+```bash
+python -m scripts.load_test
+```
 
-### 100 Concurrent Requests - Run 2
+Running it directly as:
 
-Total requests       : 100  
-Successful requests  : 100  
-Failed requests      : 0  
-Total test time      : 7.4784 seconds  
-Average response time: 7.1309 seconds  
-Fastest response     : 5.5696 seconds  
-Slowest response     : 7.3601 seconds  
+```bash
+python scripts/load_test.py
+```
 
-The API handled all requests successfully with no failures.
+causes an import error because the script imports from `app.config` and needs the project root on the Python import path.
 
-The tests also showed that response time increased under high concurrent load.
+### Single Request Baseline
+
+```text
+Total requests       : 1
+Successful requests  : 1
+Failed requests      : 0
+Total test time      : 0.3577 seconds
+Average response time: 0.3548 seconds
+Fastest response     : 0.3548 seconds
+Slowest response     : 0.3548 seconds
+```
+
+### 100 Concurrent Requests — Run 1
+
+```text
+Total requests       : 100
+Successful requests  : 100
+Failed requests      : 0
+Total test time      : 3.9016 seconds
+Average response time: 3.7642 seconds
+Fastest response     : 3.3653 seconds
+Slowest response     : 3.8410 seconds
+```
+
+### 100 Concurrent Requests — Run 2
+
+```text
+Total requests       : 100
+Successful requests  : 100
+Failed requests      : 0
+Total test time      : 7.4784 seconds
+Average response time: 7.1309 seconds
+Fastest response     : 5.5696 seconds
+Slowest response     : 7.3601 seconds
+```
+
+### Load Test Observation
+
+Across the three load-test runs, all requests completed successfully with zero failures.
+
+However, the average response time under identical 100-concurrent-request conditions increased noticeably between Run 1 and Run 2:
+
+```text
+Run 1 average: 3.7642 seconds
+Run 2 average: 7.1309 seconds
+```
+
+The exact cause of this variation was not confirmed during this testing pass.
+
+Possible factors could include:
+
+- system load
+- Docker container resource usage
+- operating system scheduling
+- request scheduling
+- other runtime conditions
+
+A more detailed performance investigation would be required to identify the exact cause.
 
 ---
 
 ## Health Check
 
-After load testing, `/api/v1/health` returned:
+After load testing, the health endpoint was checked:
 
-`{"status":"ok","model_loaded":true}`
+```text
+GET /api/v1/health
+```
 
-This confirmed that the API and ML model remained healthy after the load test.
+Response:
+
+```json
+{
+  "status": "ok",
+  "model_loaded": true
+}
+```
+
+This confirmed that the API and machine learning model remained healthy after the load tests.
 
 ---
 
@@ -77,31 +163,44 @@ This confirmed that the API and ML model remained healthy after the load test.
 
 The `/metrics` endpoint was checked after testing.
 
-Prometheus metrics showed successful HTTP requests and ML predictions.
+Prometheus metrics confirmed that successful predictions were being recorded.
 
 Example:
 
-`ml_predictions_total{model_version="v1",predicted_class="versicolor"} 101.0`
+```text
+ml_predictions_total{model_version="v1",predicted_class="versicolor"} 101.0
+ml_predictions_total{model_version="v1",predicted_class="setosa"} 2.0
+```
 
-`ml_predictions_total{model_version="v1",predicted_class="setosa"} 2.0`
-
-This confirmed that successful ML predictions were being recorded in Prometheus metrics.
+This showed that successful machine learning predictions were being counted by the custom Prometheus metric.
 
 ---
 
-## Issue Found
+## Issue Found During Testing
 
-During testing, the `/api/v1/predict-batch` endpoint was returning predictions correctly, but those predictions were not being counted in the custom Prometheus metric:
+During Task 19 testing, the `/api/v1/predict-batch` endpoint was returning predictions correctly to the client.
 
-`ml_predictions_total`
+However, predictions made through the batch endpoint were not being counted by the custom Prometheus metric:
 
-This meant that the ML monitoring did not include predictions made through the batch endpoint.
+```text
+ml_predictions_total
+```
+
+Single predictions made through `/api/v1/predict` were counted correctly, but predictions made through `/api/v1/predict-batch` were missing from the monitoring data.
+
+This meant the API prediction logic was working correctly, but the monitoring data was incomplete.
 
 ---
 
 ## Fix Applied
 
-Added the prediction counter inside the batch prediction loop:
+The missing Prometheus counter increment was added inside the batch prediction loop in:
+
+```text
+app/routers/v1.py
+```
+
+The fix:
 
 ```python
 species = species_names[pred]
@@ -110,3 +209,79 @@ prediction_counter.labels(
     predicted_class=species,
     model_version=model_version
 ).inc()
+```
+
+Now every prediction inside a batch increments the custom prediction counter individually.
+
+---
+
+## Fix Verification
+
+Before the fix:
+
+```text
+/predict-batch
+        ↓
+predictions returned successfully
+        ↓
+ml_predictions_total did not increase
+```
+
+After the fix:
+
+```text
+/predict-batch
+        ↓
+predictions returned successfully
+        ↓
+each batch prediction increments ml_predictions_total
+```
+
+The fix was verified by checking `/metrics` before and after sending batch prediction requests.
+
+The integration tests were also run again successfully after the change.
+
+---
+
+## Warnings
+
+The final pytest run completed successfully with all 18 tests passing.
+
+Some dependency-related deprecation warnings were shown by packages such as:
+
+- Starlette / httpx
+- joblib / NumPy
+
+These warnings did not cause test failures and were not treated as blocking issues for the project.
+
+---
+
+## Conclusion
+
+The final containerized application passed all automated and integration tests successfully.
+
+Final test results:
+
+```text
+18 passed
+```
+
+Integration result:
+
+```text
+4 passed
+```
+
+Load testing showed:
+
+```text
+100 concurrent requests
+100 successful
+0 failed
+```
+
+The API remained healthy after load testing.
+
+Testing also revealed a genuine monitoring issue where batch predictions were missing from the Prometheus prediction counter. The issue was fixed and verified successfully.
+
+The variation in load-test response times was documented as an unresolved performance observation rather than being treated as a confirmed bug.
