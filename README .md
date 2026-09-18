@@ -543,21 +543,6 @@ curl http://localhost:8000/metrics
 
 ---
 
-## Deployment
-
-The project is fully reproducible locally using:
-
-```bash
-docker compose up --build
-```
-
-The Dockerfile is deployment-ready and can be used with a Docker-compatible hosting platform.
-
-A public deployment will be completed as part of the final Task 20 deployment step.
-
-**Public URL:** Pending
-
----
 
 ## Independent Extension: Continuous Integration With GitHub Actions
 
@@ -583,7 +568,7 @@ The workflow:
 
 This extension was chosen to automate project testing and help detect problems whenever new code is pushed.
 
-The workflow will be verified after the project is pushed to GitHub.
+The workflow was successfully verified on GitHub Actions.  
 
 ---
 
@@ -604,3 +589,31 @@ Load testing showed me how the application behaves when many requests arrive at 
 Another important lesson was understanding how monitoring can expose problems that normal functional testing may not reveal. During testing, the batch prediction endpoint was returning correct predictions, but those predictions were not being included in the Prometheus prediction counter.
 
 Finding and fixing that issue helped me understand why monitoring is an important part of deploying and maintaining machine learning APIs.
+
+
+## Deployment
+
+This project is deployed and publicly reachable at:
+
+**Live URL:** https://ml-model-deployment-qvtl.onrender.com  
+**Interactive docs:** https://ml-model-deployment-qvtl.onrender.com/docs
+
+It is also fully reproducible locally with a single command:
+
+```bash
+docker compose up --build
+```
+
+The live deployment runs on Render's free tier and is built directly from this repository's `Dockerfile`.
+
+Free-tier services may spin down after a period of inactivity, so the first request after the service has been idle may take longer to respond while the container starts again.
+
+Environment variables such as `API_KEY` and `ALLOWED_ORIGINS` are configured directly in Render's dashboard and are not committed to the repository.
+
+The `ml/saved_model/` files are included in the repository and are copied into the deployed Docker image through the Dockerfile's:
+
+```dockerfile
+COPY . .
+```
+
+This allows Render to build the application from a fresh Git checkout without depending on local Docker bind mounts.
